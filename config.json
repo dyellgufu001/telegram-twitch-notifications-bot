@@ -1,0 +1,9 @@
+{
+    "telegram_chat_id": "",
+    "telegram_token": "",
+    "twitch_client_id": "",
+    "twitch_client_secret": "",
+    "twitch_token": "",
+    "twitch_refresh_token": "",
+    "twitch_user_login": ""
+}
