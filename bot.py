@@ -8,7 +8,7 @@ from config import Config
 
 
 class Bot:
-    def __init__(self):
+    def __init__(self) -> None:
         self._session = None
         self._is_live = False
 
@@ -16,11 +16,11 @@ class Bot:
 
         self._user = self._config.get_field('twitch_user_login')
 
-    def __del__(self):
+    def __del__(self) -> None:
         if self._session:
             asyncio.create_task(self._session.close())
 
-    def _log(self, text, end='\n', time=True):
+    def _log(self, text, time: bool=True, end: str='\n'):
         strtime = ''
 
         if time:
@@ -45,7 +45,7 @@ class Bot:
 
             return body
 
-    async def _send_telegram_message(self, chat_id, text, parse_mode='HTML'):
+    async def _send_telegram_message(self, chat_id: str, text: str, parse_mode: str='HTML') -> None:
         async with self._session.post(f'https://api.telegram.org/bot{self._config.get_field("telegram_token")}/sendMessage', data={
             'chat_id': chat_id,
             'text': text,
