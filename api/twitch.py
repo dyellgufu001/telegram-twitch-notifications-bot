@@ -19,6 +19,7 @@ class TwitchAPI(BaseAPI):
             if resp.status == 401 and body['message'] == 'Invalid OAuth token':
                 log('Access token has expired. Refreshing:', time=False)
                 await self._refresh_twitch_token()
+                
             else:
                 resp.raise_for_status()
 
