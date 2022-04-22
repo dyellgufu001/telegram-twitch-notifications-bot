@@ -4,6 +4,8 @@ from aiohttp import ClientSession
 from config import Config
 from api.telegram import TelegramAPI
 from api.twitch import TwitchAPI
+from formatting import format_message
+from type.game import Game
 from util import log
 
 
@@ -12,8 +14,12 @@ class Bot:
         self._session = None
         self._is_live = False
 
+        self._game = None
         self._stream_title = None
         self._last_message_id = None
+
+        self._telegram = None
+        self._twitch = None
 
         self._config = Config('../config.json')
 
@@ -26,7 +32,7 @@ class Bot:
         if self._session:
             asyncio.create_task(self._session.close())
 
-    async def start(self):
+    async def start(self) -> None:
         self._session = ClientSession()
             
         self._telegram = TelegramAPI(self._session, self._config.get_field("telegram_token"))
@@ -51,8 +57,9 @@ class Bot:
                     log(f'{self._user} is live: {stream_data["data"][0]["title"]}', time=False)
 
                     self._stream_title = stream_data["data"][0]["title"]
+                    self._game = Game(stream_data["data"][0]["game_id"], stream_data["data"][0]["game_name"])
 
-                    message = await self._telegram.send_message(self._chat_id, f'{self._stream_title}: https://twitch.tv/{self._user}')
+                    message = await self._telegram.send_message(self._chat_id, format_message(self._stream_title, self._game, self._user), disable_web_page_preview=True)
                     self._last_message_id = message["result"]["message_id"]
 
                 else: 
@@ -66,14 +73,15 @@ class Bot:
                 else:
                     log(f'{self._user} is live: {stream_data["data"][0]["title"]}', time=False)
 
-                    if stream_data["data"][0]["title"] != self._stream_title:
+                    if stream_data["data"][0]["title"] != self._stream_title or stream_data["data"][0]["game_id"] != self._game.id():
                         self._stream_title = stream_data["data"][0]["title"]
+                        self._game = Game(stream_data["data"][0]["game_id"], stream_data["data"][0]["game_name"])
 
-                        await self._telegram.edit_message_text(self._chat_id, self._last_message_id, f'{self._stream_title}: https://twitch.tv/{self._user}')
+                        await self._telegram.edit_message_text(self._chat_id, self._last_message_id, format_message(self._stream_title, self._game, self._user), disable_web_page_preview=True)
             
             await asyncio.sleep(self._polling_interval)
     
-    def run(self):
+    def run(self) -> None:
         asyncio.run(self.start())
 
 
