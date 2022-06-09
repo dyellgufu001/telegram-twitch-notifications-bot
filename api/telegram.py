@@ -4,7 +4,7 @@ from api.base import BaseAPI
 
 
 class TelegramAPI(BaseAPI):
-    def __init__(self, session: ClientSession, token: str, debug=False):
+    def __init__(self, session: ClientSession, token: str, debug: bool=False):
         super().__init__(session)
         
         self.__token = token

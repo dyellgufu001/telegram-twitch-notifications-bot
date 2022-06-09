@@ -1,9 +1,10 @@
 {
     "telegram_chat_id": "",
     "telegram_token": "",
-    "twitch_client_id": "",
+    "twitch_client_id": "2l4i67mqexxfgf4nq56il8k5bi3dj9",
     "twitch_client_secret": "",
     "twitch_token": "",
     "twitch_refresh_token": "",
-    "twitch_user_login": ""
+    "twitch_user_login": "tijoe",
+    "polling_interval": 10
 }

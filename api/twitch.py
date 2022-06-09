@@ -13,6 +13,9 @@ class TwitchAPI(BaseAPI):
         self.__debug = debug
 
     async def get_stream_data(self, user_login: str) -> None:
+        if self.__config.get_field('twitch_token') == '':
+            await self.__generate_twitch_token()
+        
         async with self._session.get('https://api.twitch.tv/helix/streams', params={'user_login': user_login}, 
             headers={'Authorization': f"Bearer {self.__config.get_field('twitch_token')}", 'Client-Id': self.__config.get_field('twitch_client_id')
         }) as resp:
@@ -28,6 +31,17 @@ class TwitchAPI(BaseAPI):
                 resp.raise_for_status()
 
             return body
+    
+    async def __generate_twitch_token(self):
+        async with self._session.get('https://id.twitch.tv/oauth2/authorize', allow_redirects=True, params={
+            'response_type': 'code',
+            'client_id': self.__config.get_field('twitch_client_id'),
+            'redirect_uri': 'http://localhost:3000/',
+            'scope': 'openid chat:read chat:edit whispers:read whispers:edit'
+        }) as resp:
+            if self.__debug:
+                print(resp.url.relative().query)
+            resp.raise_for_status()
 
     async def __refresh_twitch_token(self):
         async with self._session.post('https://id.twitch.tv/oauth2/token', data=FormData({
