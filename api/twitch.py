@@ -1,4 +1,5 @@
 from aiohttp import ClientSession, FormData
+from aiohttp.exceptions import TimeoutError
 
 from api.base import BaseAPI
 from config import Config
@@ -16,21 +17,24 @@ class TwitchAPI(BaseAPI):
         if self.__config.get_field('twitch_token') == '':
             await self.__generate_twitch_token()
         
-        async with self._session.get('https://api.twitch.tv/helix/streams', params={'user_login': user_login}, 
-            headers={'Authorization': f"Bearer {self.__config.get_field('twitch_token')}", 'Client-Id': self.__config.get_field('twitch_client_id')
-        }) as resp:
-            body = await resp.json()
-
+        try:
+            async with self._session.get('https://api.twitch.tv/helix/streams', params={'user_login': user_login},
+                headers={'Authorization': f"Bearer {self.__config.get_field('twitch_token')}", 'Client-Id': self.__config.get_field('twitch_client_id')
+            }) as resp:
+                body = await resp.json()
+                
             if resp.status == 401 and body['message'] == 'Invalid OAuth token':
                 log('Access token has expired. Refreshing:', time=False)
                 await self.__refresh_twitch_token()
-                
+
             else:
                 if self.__debug:
                     print(await resp.text())
                 resp.raise_for_status()
 
             return body
+        except TimeoutError as e:
+            log(f"ERROR: {e}")
     
     async def __generate_twitch_token(self):
         async with self._session.get('https://id.twitch.tv/oauth2/authorize', allow_redirects=True, params={
